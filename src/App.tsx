@@ -1,27 +1,7 @@
 import {useQuery} from 'react-query'
 
 import './App.css';
-import {useEffect, useState} from "react";
-
-function useRequest(url: string) {
-    const [data, setData] = useState([]);
-    const [error, setError] = useState();
-    const [loading, setLoading] = useState(false);
-
-    const fetchData = async () => {
-        setLoading(true);
-        const response = await fetch(url);
-        setLoading(false);
-        setData(await response.json());
-        return response;
-    }
-
-    useEffect(() => {
-        fetchData().catch((err) => setError(err))
-    }, [fetchData])
-
-    return {data, error, loading};
-}
+import cx from "classnames";
 
 function App() {
     const { isLoading, error, data } = useQuery('repoData', () =>
@@ -30,16 +10,18 @@ function App() {
         )
     )
 
-    if (error) return <div className="text-red-900">An error has occurred: </div> + (error as Error).message
+    if (error) {
+        return <div className="text-red-900">An error has occurred: </div> + (error as Error).message
+    }
 
     return (
-        <div className="App">
+        <div>
             <h1>Todos</h1>
             {isLoading && <p className="text-blue-900">Loading...</p>}
-            {Array.isArray(data) && data.map((item: any) => (
-                <div key={item.id} className="flex flex-row">
-                    <p className="w-1/2">{item.title}</p>
-                    <p className="w-1/2">{item.completed ? 'Completed' : 'Not completed'}</p>
+            {Array.isArray(data) && data.map(({completed, id, title}) => (
+                <div key={id} className="flex flex-row gap-4">
+                    <input type="checkbox" defaultValue={completed}/>
+                    <div className={cx("w-1/2 w-full text-left", {"line-through": completed})}>{title}</div>
                 </div>
             ))}
         </div>
