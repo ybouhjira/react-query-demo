@@ -1,14 +1,16 @@
-import {useEffect, useState} from 'react'
-import './App.css';
+import {useQuery} from 'react-query'
 
-function App() {
+import './App.css';
+import {useEffect, useState} from "react";
+
+function useRequest(url: string) {
     const [data, setData] = useState([]);
     const [error, setError] = useState();
     const [loading, setLoading] = useState(false);
 
     const fetchData = async () => {
         setLoading(true);
-        const response = await fetch('https://jsonplaceholder.typicode.com/todos');
+        const response = await fetch(url);
         setLoading(false);
         setData(await response.json());
         return response;
@@ -16,13 +18,24 @@ function App() {
 
     useEffect(() => {
         fetchData().catch((err) => setError(err))
-    }, [])
+    }, [fetchData])
+
+    return {data, error, loading};
+}
+
+function App() {
+    const { isLoading, error, data } = useQuery('repoData', () =>
+        fetch('https://jsonplaceholder.typicode.com/todos').then(res =>
+            res.json()
+        )
+    )
+
+    if (error) return <div className="text-red-900">An error has occurred: </div> + (error as Error).message
 
     return (
         <div className="App">
             <h1>Todos</h1>
-            {loading && <p className="text-blue-900">Loading...</p>}
-            {error && <p className="text-red-900">{JSON.stringify(error)}</p>}
+            {isLoading && <p className="text-blue-900">Loading...</p>}
             {Array.isArray(data) && data.map((item: any) => (
                 <div key={item.id} className="flex flex-row">
                     <p className="w-1/2">{item.title}</p>
